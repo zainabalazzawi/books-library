@@ -1,4 +1,5 @@
+import BooksDashboard from "@/components/books-dashboard"
 
 export default function Home() {
-  return <div> books-library</div>;
+  return <BooksDashboard />
 }
