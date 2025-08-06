@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MoreHorizontal, Plus, Edit, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -11,7 +11,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { BookStatus } from "@/types";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+ Button
+} from "@/components/ui/button";
 import { mockBooks } from "@/lib/data";
 import { getStatusBadge } from "@/lib/components";
 
@@ -38,6 +47,7 @@ const BooksDashboard = () => {
                 <TableHead>Pages</TableHead>
                 <TableHead>Published</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>More</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -59,6 +69,30 @@ const BooksDashboard = () => {
                     {new Date(book.publishedDate).getFullYear()}
                   </TableCell>
                   <TableCell>{getStatusBadge(book.status)}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Book
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit Book
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem variant="destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Book
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
