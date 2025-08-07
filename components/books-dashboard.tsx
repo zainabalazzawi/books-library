@@ -25,12 +25,18 @@ import { mockBooks } from "@/lib/data";
 import { getStatusBadge } from "@/lib/components";
 
 const BooksDashboard = () => {
-
-
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
+      <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Books Library</h1>
+        <Link href="/books/add">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Book
+          </Button>
+        </Link>
+      </div>
 
       {/* Books Table */}
       <Card>
@@ -77,13 +83,11 @@ const BooksDashboard = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
-                          <Plus className="mr-2 h-4 w-4" />
-                          Add Book
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit Book
+                        <DropdownMenuItem asChild>
+                          <Link href={`/books/${book.id}/edit`}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Book
+                          </Link>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem variant="destructive">
