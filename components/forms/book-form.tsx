@@ -56,11 +56,16 @@ const BookForm = ({ book, onSubmit = () => {}, mode }: BookFormProps) => {
       description: book?.description || "",
       publishedDate: book?.publishedDate || "",
       genre: book?.genre || "",
-      pages: book?.pages || 1,
+      pages: book?.pages || undefined,
       language: book?.language || "",
       status: book?.status || "available",
     },
   });
+
+  const handleFormSubmit = (data: BookFormData) => {
+    console.log("Form submitted with data:", data);
+    onSubmit(data);
+  };
 
   return (
     <div className="w-[55%] mx-auto p-6 space-y-6">
@@ -79,7 +84,7 @@ const BookForm = ({ book, onSubmit = () => {}, mode }: BookFormProps) => {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
@@ -114,7 +119,7 @@ const BookForm = ({ book, onSubmit = () => {}, mode }: BookFormProps) => {
                   name="genre"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Genre *</FormLabel>
+                      <FormLabel>Genre</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter genre" {...field} />
                       </FormControl>
@@ -128,7 +133,7 @@ const BookForm = ({ book, onSubmit = () => {}, mode }: BookFormProps) => {
                   name="language"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Language *</FormLabel>
+                      <FormLabel>Language</FormLabel>
                       <FormControl>
                         <Input placeholder="Enter language" {...field} />
                       </FormControl>
@@ -142,9 +147,9 @@ const BookForm = ({ book, onSubmit = () => {}, mode }: BookFormProps) => {
                   name="publishedDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Published Date *</FormLabel>
+                      <FormLabel>Published Date</FormLabel>
                       <FormControl>
-                        <Input type="date" {...field} />
+                        <Input type="text" placeholder="Enter published date" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -156,13 +161,17 @@ const BookForm = ({ book, onSubmit = () => {}, mode }: BookFormProps) => {
                   name="pages"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Pages *</FormLabel>
+                      <FormLabel>Pages</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
                           placeholder="Enter number of pages" 
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          value={field.value || ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            field.onChange(value ? parseInt(value, 10) : undefined);
+                          }}
                         />
                       </FormControl>
                       <FormMessage />
@@ -175,7 +184,7 @@ const BookForm = ({ book, onSubmit = () => {}, mode }: BookFormProps) => {
                   name="status"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Status *</FormLabel>
+                      <FormLabel>Status</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
                           <SelectTrigger>

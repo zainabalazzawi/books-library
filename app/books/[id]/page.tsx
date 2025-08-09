@@ -1,6 +1,5 @@
 "use client";
 
-import { notFound } from "next/navigation";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -17,15 +16,34 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BookDetail } from "@/components/ui";
-import { getBookById } from "@/lib/data";
+import { useBook } from "@/lib/hooks/useBooks";
 import { getStatusBadge } from "@/lib/components";
+import { LoadingState } from "@/components/LoadingState";
 
 export default function BookPage() {
   const params = useParams();
-  const book = getBookById(params.id as string);
+  const id = params.id as string;
+  const { data: book, isLoading, error } = useBook(id);
 
-  if (!book) {
-    notFound();
+   if (isLoading) {
+      return (
+        <LoadingState 
+          text='Loading book page'
+          iconSize={64}
+          className="animate-spin text-[#649C9E]"
+        />
+      ) }
+
+  if (error || !book) {
+    return (
+      <div className="p-6 w-[50%] mx-auto">
+        <Link href="/" className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Books List
+        </Link>
+        <div className="mt-6 text-red-600">Book not found.</div>
+      </div>
+    );
   }
 
   return (
@@ -78,7 +96,7 @@ export default function BookPage() {
           />
           <BookDetail 
             label="Published" 
-            data={new Date(book.publishedDate).getFullYear()} 
+            data={book.publishedDate} 
             icon={Calendar} 
           />
           <BookDetail 
