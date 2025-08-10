@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
 	"books-library-backend/db"
@@ -46,12 +47,12 @@ func main() {
 	r.Get("/api/books/{id}", func(w http.ResponseWriter, r *http.Request) {
 		getBookByID(w, r, client, ctx)
 	})
-	// r.Put("/api/books/{id}", func(w http.ResponseWriter, r *http.Request) {
-	// 	updateBook(w, r, client, ctx)
-	// })
-	// r.Delete("/api/books/{id}", func(w http.ResponseWriter, r *http.Request) {
-	// 	deleteBook(w, r, client, ctx)
-	// })
+	r.Put("/api/books/{id}", func(w http.ResponseWriter, r *http.Request) {
+		updateBook(w, r, client, ctx)
+	})
+	r.Delete("/api/books/{id}", func(w http.ResponseWriter, r *http.Request) {
+		deleteBook(w, r, client, ctx)
+	})
 
 	// Start server
 	log.Println("Server starting on :8080")
@@ -136,21 +137,103 @@ func createBook(w http.ResponseWriter, r *http.Request, client *db.PrismaClient,
 	json.NewEncoder(w).Encode(book)
 }
 
-// func deleteBook(w http.ResponseWriter, r *http.Request, client *db.PrismaClient, ctx context.Context) {
-// 	id := chi.URLParam(r, "id")
-// 	if id == "" {
-// 		http.Error(w, "Book ID is required", http.StatusBadRequest)
-// 		return
-// 	}
+func updateBook(w http.ResponseWriter, r *http.Request, client *db.PrismaClient, ctx context.Context) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "Book ID is required", http.StatusBadRequest)
+		return
+	}
 
-// 	_, err := client.Book.FindUnique(
-// 		db.Book.ID.Equals(id),
-// 	).Delete().Exec(ctx)
-// 	if err != nil {
-// 		http.Error(w, "Book not found", http.StatusNotFound)
-// 		return
-// 	}
+	// Decode the request body
+	var bookData map[string]interface{}
+	if err := json.NewDecoder(r.Body).Decode(&bookData); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
 
-// 	w.WriteHeader(http.StatusNoContent)
-// }
+	// Build update parameters using the same pattern as createBook
+	var updateParams []db.BookSetParam
+	
+	for field, value := range bookData {
+		switch field {
+		case "title":
+			if str, ok := value.(string); ok && str != "" {
+				updateParams = append(updateParams, db.Book.Title.Set(str))
+			}
+		case "author":
+			if str, ok := value.(string); ok && str != "" {
+				updateParams = append(updateParams, db.Book.Author.Set(str))
+			}
+		case "description":
+			if str, ok := value.(string); ok && str != "" {
+				updateParams = append(updateParams, db.Book.Description.Set(str))
+			}
+		case "publishedDate":
+			if str, ok := value.(string); ok && str != "" {
+				updateParams = append(updateParams, db.Book.PublishedDate.Set(str))
+			}
+		case "genre":
+			if str, ok := value.(string); ok && str != "" {
+				updateParams = append(updateParams, db.Book.Genre.Set(str))
+			}
+		case "pages":
+			if num, ok := value.(float64); ok && num > 0 {
+				updateParams = append(updateParams, db.Book.Pages.Set(int(num)))
+			}
+		case "language":
+			if str, ok := value.(string); ok && str != "" {
+				updateParams = append(updateParams, db.Book.Language.Set(str))
+			}
+		case "status":
+			if str, ok := value.(string); ok && str != "" {
+				validStatuses := map[string]bool{"available": true, "borrowed": true, "reserved": true}
+				if validStatuses[str] {
+					updateParams = append(updateParams, db.Book.Status.Set(str))
+				}
+			}
+		}
+	}
+
+	// Check if any valid fields to update
+	if len(updateParams) == 0 {
+		http.Error(w, "No valid fields provided for update", http.StatusBadRequest)
+		return
+	}
+
+	// Update the book using the proper Prisma syntax
+	updatedBook, err := client.Book.FindUnique(
+		db.Book.ID.Equals(id),
+	).Update(updateParams...).Exec(ctx)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "not found") {
+			http.Error(w, "Book not found", http.StatusNotFound)
+			return
+		}
+		http.Error(w, "Failed to update book", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(updatedBook)
+}
+
+func deleteBook(w http.ResponseWriter, r *http.Request, client *db.PrismaClient, ctx context.Context) {
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		http.Error(w, "Book ID is required", http.StatusBadRequest)
+		return
+	}
+
+	_, err := client.Book.FindUnique(
+		db.Book.ID.Equals(id),
+	).Delete().Exec(ctx)
+	if err != nil {
+		http.Error(w, "Book not found", http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
 
