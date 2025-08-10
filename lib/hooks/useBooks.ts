@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { Book } from '@/types';
 
-const API_BASE_URL = 'http://localhost:8080/api';
+// Use environment variable for Go backend URL, fallback to localhost for development
+const API_BASE_URL = process.env.NEXT_PUBLIC_GO_BACKEND_URL || 'http://localhost:8080/api';
 
 // Create axios instance with default config
 const api = axios.create({

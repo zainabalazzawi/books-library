@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
@@ -24,9 +25,17 @@ func main() {
 
 	r := chi.NewRouter()
 
-	// CORS for Next.js dev on 3000
+	// CORS configuration - allow both development and production origins
+	allowedOrigins := []string{"http://localhost:3000", "http://127.0.0.1:3000"}
+	
+	// Add production origins from environment variable
+	if prodOrigins := os.Getenv("ALLOWED_ORIGINS"); prodOrigins != "" {
+		origins := strings.Split(prodOrigins, ",")
+		allowedOrigins = append(allowedOrigins, origins...)
+	}
+
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://127.0.0.1:3000"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: false,
